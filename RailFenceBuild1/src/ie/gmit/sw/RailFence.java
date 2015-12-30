@@ -133,6 +133,15 @@ public class RailFence {
 		
 		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 3);
 		s = s.toUpperCase();
+		
+		Decryptor d = new Decryptor(s, 7);
+		d.run();
+
+		
+		Decryptor dd = new Decryptor(s, 7);
+		d.run();
+		
+		/*
 		String[] d = new String[s.length()/2];
 		
 		//initial read	
@@ -155,5 +164,6 @@ public class RailFence {
 		}
 		System.out.println("Score: "+highestScore+" Key:"+(place+2));
 		System.out.println(new RailFence().decrypt(s, place+2));
-	}
+	*/
+		}
 }
