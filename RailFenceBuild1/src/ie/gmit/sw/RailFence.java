@@ -1,5 +1,7 @@
 package ie.gmit.sw;
 
+import java.util.Map;
+
 /* Basic implementation of the Rail Fence Cypher using a 2D char array 
  * Note that there are more efficient ways to encrypt and decrypt, but the following implementation illustrates the steps
  * involved in each process and shows how the zig-zagging works. Feel free to change / adapt. 
@@ -46,6 +48,7 @@ public class RailFence {
 		System.out.println(sb.toString());
 		return sb.toString(); //Convert the StringBuffer into a String and return it
 	}
+
 	
 	//***** Decrypt a String cypherText using an integer key ***** 
 	public String decrypt(String cypherText, int key){
@@ -123,10 +126,34 @@ public class RailFence {
 		}
 	}
 		
-	public static void main(String[] args) throws Exception{
-		String s = new RailFence().encrypt("FEELTHEBERN", 3);
-		String d = new RailFence().decrypt(s, 3);
-		System.out.println(">" + s);
-		System.out.println(">" + d);
+	public static void main(String[] args){
+		Map<String, Double> map = null;
+		FilesParser fp = new FilesParser();
+		map = fp.parse("src/4grams.txt");
+		
+		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 3);
+		s = s.toUpperCase();
+		String[] d = new String[s.length()/2];
+		
+		//initial read	
+		d[0] = new RailFence().decrypt(s, 2);
+		TextScorer ts = new TextScorer(map);
+		double highestScore = ts.getScore(d[0]);
+		int place = 0;
+		
+		for(int i = 3; i<s.length()/2; i++){
+			Thread t = new Thread();
+			t.run();
+			d[i-2] = new RailFence().decrypt(s, i);
+			double tmp = ts.getScore(d[i-2]);
+			if(tmp>highestScore)
+			{
+				highestScore = tmp;
+				place = i-2;
+				
+			}
+		}
+		System.out.println("Score: "+highestScore+" Key:"+(place+2));
+		System.out.println(new RailFence().decrypt(s, place+2));
 	}
 }
