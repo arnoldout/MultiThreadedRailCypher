@@ -1,6 +1,8 @@
 package ie.gmit.sw;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -118,7 +120,7 @@ public class RailFence {
 	}
 	
 	//***** Output the 2D array in CSV format ***** 
-	private void printMatrix(char[][] matrix){
+	/*private void printMatrix(char[][] matrix){
 		for (int row = 0; row < matrix.length; row++){ //Loop over each row in the matrix
 			for (int col = 0; col < matrix[row].length; col++){ //Loop over each column in the matrix
 				System.out.print(matrix[row][col]); //Output the value at row/column index
@@ -126,40 +128,77 @@ public class RailFence {
 			}
 			System.out.println();
 		}
-	}
+	}*/
 		
 	public static void main(String[] args){
-		Map<String, Double> map = null;
+		String fileName = "src/4grams.txt";
+		Map<String, Double> map = new HashMap<String, Double>();
 		BlockingQueue<Result> queue;
-		FilesParser fp = new FilesParser();
-		map = fp.parse("src/4grams.txt");
+		
+		map = syncParseFile(fileName, map);
+		userInput("Enter your name: ");
 		
 		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 5);
 		s = s.toUpperCase();
+		
 		queue = new ArrayBlockingQueue<Result>(s.length()/2);
+		
+		//Result object to be updated when a new highest 
+		//result is found
 		Result a = null;
-		for(int keyThrdCnt = 2; keyThrdCnt<(s.length()/2); keyThrdCnt++)
+		Integer keyThrdCnt = 2;
+		while(keyThrdCnt<15)
 		{
 			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map);
 			new Thread(d).start();	
+			
 			Result r = null;
 			try {
-				r = queue.take();
-				
+				r = queue.take();		
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if(a==null)
-			{
-				a = r;
+			a = chkNwRes(a, r);
+			//System.out.println(keyThrdCnt);
+			synchronized (keyThrdCnt) {
+				keyThrdCnt++;
+				System.out.println(keyThrdCnt.toString());
 			}
-			else if(a.getScore()<r.getScore())
-			{
-				a = r;
-				System.out.println(a.getPlainText());
-			}
-			System.out.println(keyThrdCnt);
+			
 		}
+		System.out.println(a.getPlainText());
+	}
+
+
+	public static Result chkNwRes(Result a, Result r) {
+		if(a==null)
+		{
+			a = r;
+		}
+		else if(a.getScore()<r.getScore())
+		{
+			a = r;
+		}
+		return a;
+	}
+
+
+	public static void userInput(String message) {
+		System.out.println(message);
+		Scanner in = new Scanner(System.in);
+		in.nextLine();
+		in.close();
+	}
+
+
+	public static Map<String, Double> syncParseFile(String fileName, Map<String, Double> map) {
+		FilesParser fp = new FilesParser(map, fileName);
+		//fp.parse(fileName);
+		synchronized (fp) {
+			new Thread(fp).start();
+		}
+		map = fp.getMap();
+		return map;
 	}
 }
