@@ -32,4 +32,6 @@ public class TextScorer {
 			return 0f;
 		}
 	}
+	
+	
 }

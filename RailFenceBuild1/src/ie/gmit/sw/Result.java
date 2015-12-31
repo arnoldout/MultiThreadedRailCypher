@@ -1,17 +1,17 @@
 package ie.gmit.sw;
 
 public class Result {
-	private int score;
+	private double score;
 	private String plainText;
 	private int keyUsed;
-	public Result(int score, String plainText, int keyUsed) {
+	public Result(double score, String plainText, int keyUsed) {
 		super();
 		this.score = score;
 		this.plainText = plainText;
 		this.keyUsed = keyUsed;
 	}
 	
-	public int getScore() {
+	public double getScore() {
 		return score;
 	}
 	public void setScore(int score) {

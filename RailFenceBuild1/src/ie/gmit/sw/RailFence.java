@@ -1,6 +1,8 @@
 package ie.gmit.sw;
 
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /* Basic implementation of the Rail Fence Cypher using a 2D char array 
  * Note that there are more efficient ways to encrypt and decrypt, but the following implementation illustrates the steps
@@ -45,7 +47,7 @@ public class RailFence {
 				if (matrix[row][col] > '0') sb.append(matrix[row][col]); //Extract the character at the row/col position if it's not 0.
 			}
 		}
-		System.out.println(sb.toString());
+		System.out.println("Encrypted Text: "+sb.toString());
 		return sb.toString(); //Convert the StringBuffer into a String and return it
 	}
 
@@ -128,42 +130,36 @@ public class RailFence {
 		
 	public static void main(String[] args){
 		Map<String, Double> map = null;
+		BlockingQueue<Result> queue;
 		FilesParser fp = new FilesParser();
 		map = fp.parse("src/4grams.txt");
 		
-		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 3);
+		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 5);
 		s = s.toUpperCase();
-		
-		Decryptor d = new Decryptor(s, 7);
-		d.run();
-
-		
-		Decryptor dd = new Decryptor(s, 7);
-		d.run();
-		
-		/*
-		String[] d = new String[s.length()/2];
-		
-		//initial read	
-		d[0] = new RailFence().decrypt(s, 2);
-		TextScorer ts = new TextScorer(map);
-		double highestScore = ts.getScore(d[0]);
-		int place = 0;
-		
-		for(int i = 3; i<s.length()/2; i++){
-			Thread t = new Thread();
-			t.run();
-			d[i-2] = new RailFence().decrypt(s, i);
-			double tmp = ts.getScore(d[i-2]);
-			if(tmp>highestScore)
-			{
-				highestScore = tmp;
-				place = i-2;
+		queue = new ArrayBlockingQueue<Result>(s.length()/2);
+		Result a = null;
+		for(int keyThrdCnt = 2; keyThrdCnt<(s.length()/2); keyThrdCnt++)
+		{
+			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map);
+			new Thread(d).start();	
+			Result r = null;
+			try {
+				r = queue.take();
 				
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			if(a==null)
+			{
+				a = r;
+			}
+			else if(a.getScore()<r.getScore())
+			{
+				a = r;
+				System.out.println(a.getPlainText());
+			}
+			System.out.println(keyThrdCnt);
 		}
-		System.out.println("Score: "+highestScore+" Key:"+(place+2));
-		System.out.println(new RailFence().decrypt(s, place+2));
-	*/
-		}
+	}
 }
