@@ -131,14 +131,15 @@ public class RailFence {
 	}*/
 		
 	public static void main(String[] args){
-		String fileName = "src/4grams.txt";
+		//String fileName = "src/4grams.txt";
+		String fileName = "src/ecryptor.txt";
 		Map<String, Double> map = new HashMap<String, Double>();
 		BlockingQueue<Resultable> queue;
 		
-		map = syncParseFile(fileName, map);
+		map = syncGParseFile(fileName, map);
 		userInput("Enter your name: ");
 		
-		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 12);
+		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 12	);
 		s = s.toUpperCase();
 		
 		queue = new ArrayBlockingQueue<Resultable>(s.length()/2);
@@ -152,7 +153,7 @@ public class RailFence {
 		{
 			synchronized (keyThrdCnt) {
 				keyThrdCnt++;
-				System.out.println(keyThrdCnt.toString());
+				//System.out.println(keyThrdCnt.toString());
 			}
 			
 			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map);
@@ -199,13 +200,14 @@ public class RailFence {
 	}
 
 
-	public static Map<String, Double> syncParseFile(String fileName, Map<String, Double> map) {
-		FilesParser fp = new FilesParser(map, fileName);
+	public static Map<String, Double> syncGParseFile(String fileName, Map<String, Double> map) {
+		DecryptionFileParser fp = new DecryptionFileParser(fileName);
+		//	GramFileParser fp = new GramFileParser(map, fileName);
 		//fp.parse(fileName);
 		synchronized (fp) {
 			new Thread(fp).start();
 		}
-		map = fp.getMap();
+		///map = fp.getMap();
 		return map;
 	}
 }

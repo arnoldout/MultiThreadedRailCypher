@@ -8,12 +8,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FilesParser implements Runnable {
+public class GramFileParser implements Runnable, Fileable {
 	
 	private Map<String, Double> map;
 	private String fileName;
 
-	public FilesParser(Map<String, Double> map, String fileName) {
+	public GramFileParser(Map<String, Double> map, String fileName) {
 		super();
 		this.map = map;
 		this.fileName = fileName;
@@ -25,21 +25,11 @@ public class FilesParser implements Runnable {
 
 		// reading in from file safely
 		try {
-			/*
-			 * File f = new File(fileName); FileInputStream fileInputStream =
-			 * null; byte[] bFile = new byte[(int) f.length()]; fileInputStream
-			 * = new FileInputStream(f); fileInputStream.read(bFile);
-			 * 
-			 * for (int i = 0; i < bFile.length; i++) { //
-			 * System.out.print((char) bFile[i]); } System.out.print("File:"
-			 * +(char) bFile[0]+"\n"); fileInputStream.close();
-			 */
+			
 			 br = new BufferedReader(new FileReader(this.fileName));
 
 			while ((line = br.readLine()) != null) {
-				String tmpS = line.substring(0, 4);
-				double tmpD = Double.valueOf(line.substring(5));
-				map.put(tmpS, tmpD);
+				processString(line);
 			}
 
 		} catch (IOException e) {
@@ -54,6 +44,13 @@ public class FilesParser implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public void processString(String line) {
+	
+			String tmpS = line.substring(0, 4);
+			double tmpD = Double.valueOf(line.substring(5));
+			map.put(tmpS, tmpD);		
 	}
 
 	@Override
@@ -76,5 +73,4 @@ public class FilesParser implements Runnable {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
-
 }
