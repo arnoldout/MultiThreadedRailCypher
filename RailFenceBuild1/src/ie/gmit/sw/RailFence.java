@@ -133,45 +133,52 @@ public class RailFence {
 	public static void main(String[] args){
 		String fileName = "src/4grams.txt";
 		Map<String, Double> map = new HashMap<String, Double>();
-		BlockingQueue<Result> queue;
+		BlockingQueue<Resultable> queue;
 		
 		map = syncParseFile(fileName, map);
 		userInput("Enter your name: ");
 		
-		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 5);
+		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 12);
 		s = s.toUpperCase();
 		
-		queue = new ArrayBlockingQueue<Result>(s.length()/2);
+		queue = new ArrayBlockingQueue<Resultable>(s.length()/2);
 		
 		//Result object to be updated when a new highest 
 		//result is found
-		Result a = null;
-		Integer keyThrdCnt = 2;
-		while(keyThrdCnt<15)
+		Resultable highResult = null;
+		Integer keyThrdCnt = 1;
+		boolean endLoop = false;
+		while(endLoop == false)
 		{
-			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map);
-			new Thread(d).start();	
-			
-			Result r = null;
-			try {
-				r = queue.take();		
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			a = chkNwRes(a, r);
-			//System.out.println(keyThrdCnt);
 			synchronized (keyThrdCnt) {
 				keyThrdCnt++;
 				System.out.println(keyThrdCnt.toString());
 			}
 			
+			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map);
+			new Thread(d).start();	
+			
+			Resultable currResult = null;
+			try {
+				currResult = queue.take();		
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(currResult instanceof PoisonResult)
+			{
+				endLoop = true;
+			}
+			
+			highResult = chkNwRes(highResult, currResult);
+			//System.out.println(keyThrdCnt);
+			
 		}
-		System.out.println(a.getPlainText());
+		System.out.println(highResult.getPlainText()+"\n  >"+queue.isEmpty());
 	}
 
 
-	public static Result chkNwRes(Result a, Result r) {
+	public static Resultable chkNwRes(Resultable a, Resultable r) {
 		if(a==null)
 		{
 			a = r;
