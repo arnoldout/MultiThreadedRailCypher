@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /* Basic implementation of the Rail Fence Cypher using a 2D char array 
  * Note that there are more efficient ways to encrypt and decrypt, but the following implementation illustrates the steps
@@ -131,15 +135,17 @@ public class RailFence {
 	}*/
 		
 	public static void main(String[] args){
-		//String fileName = "src/4grams.txt";
-		String fileName = "src/ecryptor.txt";
-		Map<String, Double> map = new HashMap<String, Double>();
+		
+		String fileName = "src/4grams.txt";
+		//String fileName = "src/ecryptor.txt";
+		Map<String, Double> map = new ConcurrentHashMap<String, Double>();
 		BlockingQueue<Resultable> queue;
-		
-		map = syncGParseFile(fileName, map);
-		userInput("Enter your name: ");
-		
-		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATES", 12	);
+		synchronized (map) {
+			map = syncGParseFile(fileName, map);
+		}
+		//userInput("Enter your name: ");
+		String t = "STOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATES";
+		String s = new RailFence().encrypt("STOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATESSTOPTHEMATTHECASTLEGATES", 9);
 		s = s.toUpperCase();
 		
 		queue = new ArrayBlockingQueue<Resultable>(s.length()/2);
@@ -149,17 +155,24 @@ public class RailFence {
 		Resultable highResult = null;
 		Integer keyThrdCnt = 1;
 		boolean endLoop = false;
+		AtomicInteger producerCounter = new AtomicInteger(2);
+		final long startTime = System.currentTimeMillis();
+		
+		//ExecutorService executor = Executors.newFixedThreadPool(s.length()/2);
+		
 		while(endLoop == false)
 		{
-			synchronized (keyThrdCnt) {
+			
+			//synchronized (keyThrdCnt) {
 				keyThrdCnt++;
 				//System.out.println(keyThrdCnt.toString());
-			}
+			//}
 			
-			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map);
+			Decryptor d = new Decryptor(queue, s, keyThrdCnt, map, producerCounter);
+			//executor.submit(new Decryptor(queue, s, keyThrdCnt, map, producerCounter));
 			new Thread(d).start();	
 			
-			Resultable currResult = null;
+		Resultable currResult = null;
 			try {
 				currResult = queue.take();		
 			} catch (InterruptedException e) {
@@ -175,7 +188,15 @@ public class RailFence {
 			//System.out.println(keyThrdCnt);
 			
 		}
-		System.out.println(highResult.getPlainText()+"\n  >"+queue.isEmpty());
+		//executor.shutdown();
+		//System.out.println(highResult.getPlainText()+"\n  >"+queue.isEmpty());
+		System.out.println(producerCounter);
+		//System.out.println(t.equals(highResult.getPlainText()));
+		
+		
+		final long endTime = System.currentTimeMillis();
+
+		System.out.println("Total execution time: " + (endTime - startTime) );
 	}
 
 
@@ -201,13 +222,11 @@ public class RailFence {
 
 
 	public static Map<String, Double> syncGParseFile(String fileName, Map<String, Double> map) {
-		DecryptionFileParser fp = new DecryptionFileParser(fileName);
-		//	GramFileParser fp = new GramFileParser(map, fileName);
+		//DecryptionFileParser fp = new DecryptionFileParser(fileName);
+			GramFileParser fp = new GramFileParser(map, fileName);
 		//fp.parse(fileName);
-		synchronized (fp) {
 			new Thread(fp).start();
-		}
-		///map = fp.getMap();
+		map = fp.getMap();
 		return map;
 	}
 }

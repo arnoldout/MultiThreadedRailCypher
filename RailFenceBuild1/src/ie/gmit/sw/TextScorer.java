@@ -28,10 +28,9 @@ public class TextScorer {
 			double probability = (double) (frequency / total);
 
 			return Math.log10(probability);
+			
 		} else {
 			return 0f;
 		}
-	}
-	
-	
+	}	
 }
