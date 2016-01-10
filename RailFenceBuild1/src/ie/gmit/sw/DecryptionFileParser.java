@@ -1,22 +1,28 @@
 package ie.gmit.sw;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class DecryptionFileParser implements Fileable{
+public class DecryptionFileParser implements Fileable {
 
 	private String fileName;
-	private StringBuilder cypherText;
-	
+	private CypherText cypherText;
 
+	/**
+	 * A Constructor that takes in a file name and initialises the cyphertext
+	 * @param fileName - File name for the decrypted file name
+	 */
 	public DecryptionFileParser(String fileName) {
 		super();
 		this.fileName = fileName;
-		this.cypherText = new StringBuilder();
+		this.cypherText = new CypherText();
 	}
 
-	
+	/**
+	 * This method tries to parse the current object's file
+	 */
 	@Override
 	public void parse() {
 		BufferedReader br = null;
@@ -24,36 +30,45 @@ public class DecryptionFileParser implements Fileable{
 
 		// reading in from file safely
 		try {
-			
-			 br = new BufferedReader(new FileReader(this.fileName));
-
-			while ((line = br.readLine()) != null) {
-				line = line.replaceAll("[^\\p{IsAlphabetic}]+", "");
-				line = line.toUpperCase();
-				cypherText.append(line);
-				
-			}
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//try to setup the reader, check if file is there
+			br = new BufferedReader(new FileReader(this.fileName));
+		}catch(FileNotFoundException e)
+		{
+			//output to user a message
+			System.out.println("File Not Found");
 		}
-
-		// closing the file safely
-		try {
-			br.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		//if the file has been found, the parsing can begin
+		if(br!=null)
+		{
+			try {
+				while ((line = br.readLine()) != null) {
+					cypherText.convertToCypher(line);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
+			// closing the file safely
+			try {
+				br.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 
+	/**
+	 * Overriding the Runnable run method
+	 * it simply calls the parse method
+	 */
 	@Override
 	public void run() {
 		parse();
-		
-	}
 
+	}
 	@Override
 	public String getFileName() {
 		// TODO Auto-generated method stub
@@ -67,11 +82,11 @@ public class DecryptionFileParser implements Fileable{
 	}
 
 	public String getCypherText() {
-		return cypherText.toString();
+		return cypherText.getCypherText();
 	}
 
 	public void setCypherText(StringBuilder cypherText) {
-		this.cypherText = cypherText;
+		this.cypherText.setCypherText(cypherText);
 	}
 
 }
